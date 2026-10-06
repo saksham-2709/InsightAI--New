@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || 'https://insightai-backend-0tru.onrender.com'
 
 // Create axios instance
 const api = axios.create({
