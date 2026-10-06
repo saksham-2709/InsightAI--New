@@ -122,13 +122,18 @@ const Models = () => {
             Train and manage your machine learning models.
           </p>
         </div>
-        <button
-          onClick={() => setShowTrainingModal(true)}
-          className="btn-primary flex items-center"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Train New Model
-        </button>
+        <div className="flex items-center gap-2">
+          <Link to="/compare-models" className="btn-secondary flex items-center">
+            Compare
+          </Link>
+          <button
+            onClick={() => setShowTrainingModal(true)}
+            className="btn-primary flex items-center"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Train New Model
+          </button>
+        </div>
       </div>
 
       {/* Models Grid */}
