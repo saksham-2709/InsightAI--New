@@ -1,4 +1,4 @@
-import openai
+from openai import OpenAI
 import os
 from typing import Dict, Any, List
 from dotenv import load_dotenv
@@ -9,11 +9,8 @@ load_dotenv()
 class LLMService:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY")
-        if not self.api_key:
-            raise ValueError("OPENAI_API_KEY not found in environment variables")
-        
-        openai.api_key = self.api_key
-        self.model = "gpt-4"
+        self.model = os.getenv("OPENAI_MODEL", "gpt-4")
+        self.client = OpenAI(api_key=self.api_key) if self.api_key else None
     
     def generate_insights(self, dataset_info: Dict[str, Any], model_results: Dict[str, Any]) -> str:
         """Generate AI-powered insights from dataset and model results."""
@@ -25,7 +22,10 @@ class LLMService:
         prompt = self._create_insight_prompt(context)
         
         try:
-            response = openai.ChatCompletion.create(
+            if not self.client:
+                return "AI insights are unavailable because OPENAI_API_KEY is not configured. The ML results are still available."
+
+            response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {
