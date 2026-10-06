@@ -240,6 +240,40 @@ class MLService:
             'X_pca': X_pca.tolist()
         }
     
+    def get_feature_importance(self, model_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Return normalized feature importance for models that expose it."""
+        model = model_data.get('model')
+        feature_columns = model_data.get('feature_columns', [])
+        if model is None or not feature_columns:
+            return []
+
+        scores = None
+        if hasattr(model, 'feature_importances_'):
+            raw = np.asarray(model.feature_importances_, dtype=float).ravel()
+            if len(raw) == len(feature_columns):
+                scores = np.abs(raw)
+
+        if scores is None and hasattr(model, 'coef_'):
+            raw = np.asarray(model.coef_, dtype=float)
+            raw = np.abs(raw) if raw.ndim == 1 else np.mean(np.abs(raw), axis=0)
+            if len(raw) == len(feature_columns):
+                scores = raw
+
+        if scores is None or not np.isfinite(scores).all():
+            return []
+
+        total = float(scores.sum())
+        if total <= 0:
+            return []
+
+        normalized = (scores / total) * 100.0
+        items = [
+            {'feature': str(feature_columns[i]), 'importance': round(float(normalized[i]), 2)}
+            for i in range(len(feature_columns))
+        ]
+        items.sort(key=lambda item: item['importance'], reverse=True)
+        return items
+
     def save_model(self, model_data: Dict[str, Any], model_name: str) -> str:
         """Save the trained model and related data."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
