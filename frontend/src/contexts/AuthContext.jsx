@@ -37,15 +37,27 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await authService.login(email, password)
-      const { access_token, user: userData } = response
-      
+      const { access_token } = response
+
+      // The backend returns the token only. Fetch the authenticated
+      // user before reporting login success so ProtectedRoute has
+      // user state ready when navigation happens.
       localStorage.setItem('token', access_token)
       setToken(access_token)
+
+      const userData = await authService.getCurrentUser()
       setUser(userData)
-      
+
       return { success: true }
     } catch (error) {
-      return { success: false, error: error.message }
+      localStorage.removeItem('token')
+      setToken(null)
+      setUser(null)
+
+      return {
+        success: false,
+        error: error.response?.data?.detail || error.message || 'Login failed'
+      }
     }
   }
 
