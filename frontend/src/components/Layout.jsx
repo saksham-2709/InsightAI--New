@@ -5,6 +5,7 @@ import {
   Home, 
   Upload, 
   BarChart3, 
+  GitCompare, 
   Settings, 
   LogOut, 
   Sun, 
@@ -30,6 +31,7 @@ const Layout = () => {
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Upload Data', href: '/upload', icon: Upload },
     { name: 'Models', href: '/models', icon: BarChart3 },
+    { name: 'Compare Models', href: '/compare-models', icon: GitCompare },
   ]
 
   const isActive = (href) => location.pathname === href
