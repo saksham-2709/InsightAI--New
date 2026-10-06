@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
 import Models from './pages/Models'
 import ModelResults from './pages/ModelResults'
+import ModelComparison from './pages/ModelComparison'
+import DatasetProfile from './pages/DatasetProfile'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -29,6 +31,8 @@ function App() {
               <Route path="upload" element={<Upload />} />
               <Route path="models" element={<Models />} />
               <Route path="models/:id" element={<ModelResults />} />
+              <Route path="compare-models" element={<ModelComparison />} />
+              <Route path="datasets/:id" element={<DatasetProfile />} />
             </Route>
           </Routes>
         </div>
