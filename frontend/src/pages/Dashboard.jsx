@@ -173,13 +173,16 @@ const Dashboard = () => {
             </div>
           </Link>
 
-          <div className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <FileText className="h-6 w-6 text-blue-600 mr-3" />
+          <Link
+            to="/compare-models"
+            className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            <BarChart3 className="h-6 w-6 text-purple-600 mr-3" />
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-white">View Reports</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Download insights</p>
+              <h4 className="font-medium text-gray-900 dark:text-white">Compare Models</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Evaluate trained models side by side</p>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
 
@@ -197,9 +200,12 @@ const Dashboard = () => {
                   <div className="flex items-center">
                     <FileText className="h-5 w-5 text-primary-600 mr-3" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      <Link
+                        to={`/datasets/${dataset.id}`}
+                        className="text-sm font-medium text-gray-900 hover:text-primary-600 dark:text-white dark:hover:text-primary-400"
+                      >
                         {dataset.name}
-                      </p>
+                      </Link>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {dataset.row_count} rows • {dataset.column_count} columns
                       </p>
