@@ -17,6 +17,10 @@ function App() {
       <AuthProvider>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Routes>
+            {/* Render may serve /index.html as the SPA entry point.
+                Normalize it back to the app root so React Router can handle it. */}
+            <Route path="/index.html" element={<Navigate to="/" replace />} />
+
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/" element={
