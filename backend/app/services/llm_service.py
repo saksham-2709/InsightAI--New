@@ -176,7 +176,10 @@ class LLMService:
         """
         
         try:
-            response = openai.ChatCompletion.create(
+            if not self.client:
+                return "AI summary report is unavailable because OPENAI_API_KEY is not configured."
+
+            response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {
@@ -216,7 +219,10 @@ class LLMService:
         """
         
         try:
-            response = openai.ChatCompletion.create(
+            if not self.client:
+                return "AI chart description is unavailable because OPENAI_API_KEY is not configured."
+
+            response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {

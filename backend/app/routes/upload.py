@@ -88,6 +88,8 @@ async def upload_csv(
         
         return dataset
         
+    except HTTPException:
+        raise
     except Exception as e:
         # Clean up file if error occurs
         if os.path.exists(file_path):
@@ -148,6 +150,8 @@ async def get_dataset_preview(
         df = pd.read_csv(dataset.file_path)
         preview = get_dataframe_preview(df)
         return preview
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

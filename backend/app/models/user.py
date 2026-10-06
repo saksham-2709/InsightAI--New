@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.database import Base
 from pydantic import BaseModel, EmailStr
@@ -16,6 +17,9 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    datasets = relationship("Dataset", back_populates="user")
+    models = relationship("Model", back_populates="user")
 
 class UserCreate(BaseModel):
     email: EmailStr
