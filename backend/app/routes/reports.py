@@ -163,8 +163,15 @@ async def get_model_charts(
         )
     
     try:
-        # Load model data
-        model_data = ml_service.load_model(model.model_path)
+        # Reporting uses persisted database metadata/metrics and does not require
+        # the serialized model file on Render's ephemeral filesystem.
+        model_data = {
+            "task_type": model.task_type,
+            "algorithm": model.algorithm,
+            "target_column": model.target_column,
+            "feature_columns": model.feature_columns or [],
+            "metrics": model.metrics or {}
+        }
         
         # Get dataset info
         dataset = db.query(Dataset).filter(Dataset.id == model.dataset_id).first()
@@ -215,8 +222,14 @@ async def get_model_summary(
         )
     
     try:
-        # Load model data
-        model_data = ml_service.load_model(model.model_path)
+        # Results are stored in the database; do not require the local model artifact.
+        model_data = {
+            "task_type": model.task_type,
+            "algorithm": model.algorithm,
+            "target_column": model.target_column,
+            "feature_columns": model.feature_columns or [],
+            "metrics": model.metrics or {}
+        }
         
         # Get dataset info
         dataset = db.query(Dataset).filter(Dataset.id == model.dataset_id).first()
@@ -225,7 +238,9 @@ async def get_model_summary(
             "name": dataset.name,
             "row_count": dataset.row_count,
             "column_count": dataset.column_count,
-            "column_info": dataset.column_info
+            "column_info": dataset.column_info,
+            "target_column": model.target_column,
+            "feature_columns": model.feature_columns or []
         }
         
         model_results = {
