@@ -77,8 +77,8 @@ const ModelResults = () => {
       a.download = `insightai_report_${id}.pdf`
       document.body.appendChild(a)
       a.click()
-      window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000)
     } catch (error) {
       console.error('Error downloading PDF:', error)
     }
