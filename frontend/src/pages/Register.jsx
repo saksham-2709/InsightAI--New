@@ -34,6 +34,10 @@ const Register = () => {
       setError('Password must be at least 6 characters long')
       return false
     }
+    if (new TextEncoder().encode(formData.password).length > 72) {
+      setError('Password must be 72 bytes or fewer')
+      return false
+    }
     return true
   }
 
