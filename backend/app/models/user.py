@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.database import Base
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
 
@@ -24,11 +24,11 @@ class User(Base):
 class UserCreate(BaseModel):
     email: EmailStr
     username: str
-    password: str
+    password: str = Field(min_length=6, max_length=72)
 
 class UserLogin(BaseModel):
     email: str
-    password: str
+    password: str = Field(min_length=1, max_length=72)
 
 class UserResponse(BaseModel):
     id: int
