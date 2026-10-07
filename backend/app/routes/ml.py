@@ -198,8 +198,13 @@ async def get_model_results(
         )
     
     try:
-        # Load the model data
-        model_data = ml_service.load_model(model.model_path)
+        # The result page only needs metadata and stored metrics.
+        # Do not depend on the serialized model file, which is ephemeral on Render.
+        model_data = {
+            "algorithm": model.algorithm,
+            "task_type": model.task_type,
+            "feature_columns": model.feature_columns or []
+        }
         
         # Get dataset info
         dataset = db.query(Dataset).filter(Dataset.id == model.dataset_id).first()
