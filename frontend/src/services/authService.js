@@ -19,14 +19,23 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Handle token expiration
+// Handle expired/invalid tokens.
+// IMPORTANT: do not redirect for login/register failures.
+// A wrong password returns 401 and should be shown on the login page,
+// not cause the browser to reload the page.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = error.config?.url || ''
+    const isLoginOrRegister =
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/register')
+
+    if (error.response?.status === 401 && !isLoginOrRegister) {
       localStorage.removeItem('token')
       window.location.href = '/login'
     }
+
     return Promise.reject(error)
   }
 )
