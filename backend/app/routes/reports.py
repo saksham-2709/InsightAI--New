@@ -37,8 +37,15 @@ async def download_pdf_report(
         )
     
     try:
-        # Load model data
-        model_data = ml_service.load_model(model.model_path)
+        # Build report data from the database record so reporting also works
+        # when Render's ephemeral filesystem no longer contains the model file.
+        model_data = {
+            "task_type": model.task_type,
+            "algorithm": model.algorithm,
+            "target_column": model.target_column,
+            "feature_columns": model.feature_columns or [],
+            "metrics": model.metrics or {}
+        }
         
         # Get dataset info
         dataset = db.query(Dataset).filter(Dataset.id == model.dataset_id).first()
@@ -48,7 +55,9 @@ async def download_pdf_report(
             "name": dataset.name,
             "row_count": dataset.row_count,
             "column_count": dataset.column_count,
-            "column_info": dataset.column_info
+            "column_info": dataset.column_info,
+            "target_column": model.target_column,
+            "feature_columns": model.feature_columns or []
         }
         
         model_results = {
@@ -99,8 +108,14 @@ async def download_csv_results(
         )
     
     try:
-        # Load model data
-        model_data = ml_service.load_model(model.model_path)
+        # CSV reports only need the stored model metadata and metrics.
+        model_data = {
+            "task_type": model.task_type,
+            "algorithm": model.algorithm,
+            "target_column": model.target_column,
+            "feature_columns": model.feature_columns or [],
+            "metrics": model.metrics or {}
+        }
         
         # Get dataset info
         dataset = db.query(Dataset).filter(Dataset.id == model.dataset_id).first()
