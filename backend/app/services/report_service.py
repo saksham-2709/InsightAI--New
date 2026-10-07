@@ -195,77 +195,122 @@ class ReportService:
         return charts
     
     def generate_pdf_report(self, model_data: Dict[str, Any], dataset_info: Dict[str, Any], insights: str) -> str:
-        """Generate a comprehensive PDF report."""
+        """Generate a robust, multi-page PDF report without external chart dependencies."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         report_filename = f"report_{timestamp}.pdf"
         report_path = os.path.join(self.reports_dir, report_filename)
-        
-        # Generate charts
-        charts = self.generate_charts(model_data, dataset_info)
-        
-        # Create PDF
+
+        def safe_text(value: Any) -> str:
+            text = str(value) if value is not None else ""
+            return text.encode("latin-1", "replace").decode("latin-1")
+
         doc = fitz.open()
-        page = doc.new_page()
-        
-        # Add title
+        page_width = 595
+        page_height = 842
+        margin = 45
+
+        def new_page():
+            page = doc.new_page(width=page_width, height=page_height)
+            page.insert_text(
+                (margin, 30),
+                "InsightAI - AI-Powered Data Analytics",
+                fontsize=9,
+                color=(0.35, 0.35, 0.35)
+            )
+            return page, margin, 50
+
+        page, _, y = new_page()
+
         title = f"InsightAI Report - {dataset_info.get('name', 'Dataset')}"
-        page.insert_text((50, 50), title, fontsize=24, color=(0, 0, 0))
-        
-        # Add timestamp
-        timestamp_text = f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        page.insert_text((50, 80), timestamp_text, fontsize=12, color=(100, 100, 100))
-        
-        # Add dataset information
-        y_position = 120
-        page.insert_text((50, y_position), "Dataset Information:", fontsize=16, color=(0, 0, 0))
-        y_position += 30
-        
+        page.insert_text(
+            (margin, y),
+            safe_text(title),
+            fontsize=22,
+            color=(0, 0.18, 0.55)
+        )
+        y += 25
+        page.insert_text(
+            (margin, y),
+            f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            fontsize=10,
+            color=(0.4, 0.4, 0.4)
+        )
+        y += 30
+
+        def section_heading(text: str):
+            nonlocal page, y
+            if y > page_height - 90:
+                page, _, y = new_page()
+            page.insert_text((margin, y), safe_text(text), fontsize=15, color=(0, 0, 0))
+            y += 22
+
+        def add_wrapped(text: str, fontsize=10.5, line_height=15):
+            nonlocal page, y
+            text = safe_text(text).strip()
+            if not text:
+                return
+            for paragraph in text.split("\n"):
+                paragraph = paragraph.strip()
+                if not paragraph:
+                    y += 7
+                    continue
+
+                words = paragraph.split()
+                line = ""
+                lines = []
+                for word in words:
+                    candidate = f"{line} {word}".strip()
+                    if fitz.get_text_length(candidate, fontname="helv", fontsize=fontsize) <= page_width - 2 * margin:
+                        line = candidate
+                    else:
+                        if line:
+                            lines.append(line)
+                        line = word
+                if line:
+                    lines.append(line)
+
+                for line in lines:
+                    if y > page_height - 55:
+                        page, _, y = new_page()
+                    page.insert_text((margin, y), line, fontsize=fontsize, color=(0, 0, 0))
+                    y += line_height
+
+        section_heading("Dataset Information")
         dataset_details = [
             f"Name: {dataset_info.get('name', 'Unknown')}",
             f"Rows: {dataset_info.get('row_count', 0):,}",
             f"Columns: {dataset_info.get('column_count', 0)}",
             f"Task Type: {model_data.get('task_type', 'Unknown').title()}",
-            f"Algorithm: {model_data.get('algorithm', 'Unknown')}"
+            f"Algorithm: {model_data.get('algorithm', 'Unknown')}",
+            f"Target Column: {model_data.get('target_column') or 'Not applicable'}",
+            f"Features Used: {len(model_data.get('feature_columns', []) or [])}"
         ]
-        
-        for detail in dataset_details:
-            page.insert_text((70, y_position), detail, fontsize=12, color=(0, 0, 0))
-            y_position += 20
-        
-        # Add model metrics
-        y_position += 20
-        page.insert_text((50, y_position), "Model Performance:", fontsize=16, color=(0, 0, 0))
-        y_position += 30
-        
-        metrics = model_data.get('metrics', {})
-        for metric_name, metric_value in metrics.items():
-            if isinstance(metric_value, (int, float)):
-                page.insert_text((70, y_position), f"{metric_name.title()}: {metric_value:.3f}", fontsize=12, color=(0, 0, 0))
-                y_position += 20
-        
-        # Add insights
-        y_position += 20
-        page.insert_text((50, y_position), "AI-Generated Insights:", fontsize=16, color=(0, 0, 0))
-        y_position += 30
-        
-        # Split insights into paragraphs
-        insight_paragraphs = insights.split('\n\n')
-        for paragraph in insight_paragraphs[:3]:  # Limit to first 3 paragraphs
-            if len(paragraph.strip()) > 0:
-                # Wrap text to fit page width
-                wrapped_text = self._wrap_text(paragraph, 80)
-                for line in wrapped_text:
-                    page.insert_text((70, y_position), line, fontsize=11, color=(0, 0, 0))
-                    y_position += 15
-                y_position += 10
-        
-        # Save PDF
-        doc.save(report_path)
+        add_wrapped("\n".join(dataset_details))
+        y += 8
+
+        features = model_data.get("feature_columns", []) or []
+        if features:
+            section_heading("Feature Columns")
+            add_wrapped(", ".join(safe_text(x) for x in features))
+            y += 8
+
+        section_heading("Model Performance")
+        metrics = model_data.get("metrics", {}) or {}
+        numeric_metrics = []
+        for name, value in metrics.items():
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                numeric_metrics.append(f"{name.replace('_', ' ').title()}: {value:.4f}")
+        add_wrapped("\n".join(numeric_metrics) if numeric_metrics else "No numeric metrics available.")
+        y += 8
+
+        section_heading("AI-Generated Insights")
+        add_wrapped(insights or "AI insights were not available for this report.")
+
+        doc.save(report_path, garbage=4, deflate=True)
         doc.close()
-        
         return report_path
-    
-    def generate_csv_results(self, model_data: Dict[str, Any], dataset_info: Dict[str, Any]) -> str:
+
+def generate_csv_results(self, model_data: Dict[str, Any], dataset_info: Dict[str, Any]) -> str:
         """Generate CSV results file."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         csv_filename = f"results_{timestamp}.csv"
