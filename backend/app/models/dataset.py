@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, JSON
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.models.database import Base
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, Dict, Any
 from datetime import datetime
 
@@ -68,6 +68,8 @@ class DatasetResponse(BaseModel):
         from_attributes = True
 
 class ModelCreate(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     name: str
     task_type: str
     algorithm: str
