@@ -29,16 +29,23 @@ def detect_column_types(df: pd.DataFrame) -> Dict[str, str]:
     return column_types
 
 def get_column_info(df: pd.DataFrame) -> Dict[str, Any]:
-    """Get comprehensive information about each column."""
+    """Get comprehensive information about each column using JSON-safe Python types."""
     column_info = {}
+    detected_types = detect_column_types(df)
     
     for column in df.columns:
+        # Pandas often returns NumPy scalar types (for example np.int64).
+        # Convert them to native Python values before storing metadata in a
+        # SQLAlchemy JSON column.
+        missing_count = int(df[column].isnull().sum())
+        unique_count = int(df[column].nunique())
+        
         info = {
-            'type': detect_column_types(df)[column],
-            'missing_count': df[column].isnull().sum(),
-            'missing_percentage': (df[column].isnull().sum() / len(df)) * 100,
-            'unique_count': df[column].nunique(),
-            'unique_percentage': (df[column].nunique() / len(df)) * 100
+            'type': detected_types[column],
+            'missing_count': missing_count,
+            'missing_percentage': float((missing_count / len(df)) * 100),
+            'unique_count': unique_count,
+            'unique_percentage': float((unique_count / len(df)) * 100)
         }
         
         # Add type-specific information
@@ -52,14 +59,13 @@ def get_column_info(df: pd.DataFrame) -> Dict[str, Any]:
         elif info['type'] == 'categorical':
             value_counts = df[column].value_counts()
             info.update({
-                'top_values': value_counts.head(5).to_dict(),
-                'value_counts': value_counts.to_dict()
+                'top_values': {str(k): int(v) for k, v in value_counts.head(5).items()},
+                'value_counts': {str(k): int(v) for k, v in value_counts.items()}
             })
         
         column_info[column] = info
     
     return column_info
-
 def clean_dataframe(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """Clean the dataframe and return cleaning report."""
     original_shape = df.shape
