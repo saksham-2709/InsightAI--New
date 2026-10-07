@@ -9,7 +9,7 @@ load_dotenv()
 class LLMService:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY")
-        self.model = os.getenv("OPENAI_MODEL", "gpt-4")
+        self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
     
     def generate_insights(self, dataset_info: Dict[str, Any], model_results: Dict[str, Any]) -> str:
