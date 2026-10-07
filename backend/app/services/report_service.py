@@ -310,7 +310,7 @@ class ReportService:
         doc.close()
         return report_path
 
-def generate_csv_results(self, model_data: Dict[str, Any], dataset_info: Dict[str, Any]) -> str:
+    def generate_csv_results(self, model_data: Dict[str, Any], dataset_info: Dict[str, Any]) -> str:
         """Generate CSV results file."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         csv_filename = f"results_{timestamp}.csv"
